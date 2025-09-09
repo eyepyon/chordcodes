@@ -75,7 +75,7 @@ padding-left: 1rem;
 <span class="font-['Pacifico'] text-2xl text-white">Chord.codes</span>
 </div>
 <div class="flex items-center space-x-6">
-<a href="https://readdy.ai/home/f24f56b8-6ba7-4f71-a8cb-77a197c4023d/e5e122b6-5a3c-4c24-b271-2d2b6e44cc7c" data-readdy="true" class="flex items-center space-x-2 text-white hover:text-secondary transition-colors">
+<a href="/" data-readdy="true" class="flex items-center space-x-2 text-white hover:text-secondary transition-colors">
 <div class="w-5 h-5 flex items-center justify-center">
 <i class="ri-arrow-left-line"></i>
 </div>
@@ -132,7 +132,7 @@ Chord.codes では、お客様の個人情報の保護を最重要課題とし�
 </h2>
 <div class="space-y-6 text-gray-300 leading-relaxed">
 <p>
-株式会社 Chord.codes（以下「当社」）は、AI 音楽生成アプリケーション「Chord.codes」の提供にあたり、お客様の個人情報の保護に関する法令およびその他の規範を遵守し、お客様の個人情報の保護に努めます。
+フロッグカンパニー株式会社（以下「当社」）は、AI 音楽生成アプリケーション「Chord.codes」の提供にあたり、お客様の個人情報の保護に関する法令およびその他の規範を遵守し、お客様の個人情報の保護に努めます。
 </p>
 <p>
 当社は、個人情報保護の重要性を認識し、個人情報の適切な取り扱いを実現するため、個人情報保護に関する法律、関連するガイドライン等を遵守いたします。
@@ -547,16 +547,14 @@ AI が生成する無限の音楽をリアルタイムで演奏する革新的�
 <li><a href="#" class="hover:text-white transition-colors">機能紹介</a></li>
 <li><a href="#" class="hover:text-white transition-colors">技術仕様</a></li>
 <li><a href="#" class="hover:text-white transition-colors">価格</a></li>
-<li><a href="#" class="hover:text-white transition-colors">FAQ</a></li>
+<li><a href="faq.php" class="hover:text-white transition-colors">FAQ</a></li>
 </ul>
 </div>
 <div>
 <h3 class="font-semibold text-white mb-4">サポート</h3>
 <ul class="space-y-2 text-gray-400">
-<li><a href="#" class="hover:text-white transition-colors">ヘルプセンター</a></li>
-<li><a href="#" class="hover:text-white transition-colors">お問い合わせ</a></li>
-<li><a href="https://readdy.ai/home/f24f56b8-6ba7-4f71-a8cb-77a197c4023d/e5e122b6-5a3c-4c24-b271-2d2b6e44cc7c" data-readdy="true" class="hover:text-white transition-colors">ホーム</a></li>
-<li><a href="#" class="hover:text-white transition-colors">利用規約</a></li>
+<li><a href="support.php" class="hover:text-white transition-colors">お問い合わせ</a></li>
+<li><a href="terms.php" class="hover:text-white transition-colors">利用規約</a></li>
 </ul>
 </div>
 </div>

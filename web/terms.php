@@ -74,7 +74,7 @@ scroll-margin-top: 2rem;
 <span class="font-['Pacifico'] text-2xl text-white">Chord.codes</span>
 </div>
 <div class="flex items-center space-x-6">
-<a href="https://readdy.ai/home/f24f56b8-6ba7-4f71-a8cb-77a197c4023d/e5e122b6-5a3c-4c24-b271-2d2b6e44cc7c" data-readdy="true" class="flex items-center space-x-2 text-white hover:text-secondary transition-colors">
+<a href="/" data-readdy="true" class="flex items-center space-x-2 text-white hover:text-secondary transition-colors">
 <i class="ri-arrow-left-line"></i>
 <span>ホームに戻る</span>
 </a>
@@ -405,16 +405,15 @@ AI が生成する無限の音楽をリアルタイムで演奏する革新的�
 <li><a href="#" class="hover:text-white transition-colors">機能紹介</a></li>
 <li><a href="#" class="hover:text-white transition-colors">技術仕様</a></li>
 <li><a href="#" class="hover:text-white transition-colors">価格</a></li>
-<li><a href="#" class="hover:text-white transition-colors">FAQ</a></li>
+<li><a href="faq.php" class="hover:text-white transition-colors">FAQ</a></li>
 </ul>
 </div>
 <div>
 <h3 class="font-semibold text-white mb-4">サポート</h3>
 <ul class="space-y-2 text-gray-400">
-<li><a href="#" class="hover:text-white transition-colors">ヘルプセンター</a></li>
-<li><a href="#" class="hover:text-white transition-colors">お問い合わせ</a></li>
-<li><a href="#" class="hover:text-white transition-colors">プライバシーポリシー</a></li>
-<li><a href="#" class="hover:text-white transition-colors">利用規約</a></li>
+<li><a href="support.php" class="hover:text-white transition-colors">お問い合わせ</a></li>
+<li><a href="privacy.php" class="hover:text-white transition-colors">プライバシーポリシー</a></li>
+<li><a href="terms.php" class="hover:text-white transition-colors">利用規約</a></li>
 </ul>
 </div>
 </div>

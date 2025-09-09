@@ -89,9 +89,9 @@ AI が奏でる<br>
 スマートフォンと電子ピアノを USB Type-C で接続し、AI が生成する無限の楽曲をリアルタイムで演奏。ショパン風、ベートーベン風など、あらゆるスタイルの新しい音楽を 24 時間体験できます。
 </p>
 <div class="flex flex-col sm:flex-row gap-4">
-<a href="https://readdy.ai/home/f24f56b8-6ba7-4f71-a8cb-77a197c4023d/0d2d7fdc-19d9-4d8c-b7fc-36fe3335de45" data-readdy="true">
+<a href="midi.html" data-readdy="true">
 <button class="bg-white text-primary px-8 py-4 !rounded-button font-semibold hover:bg-gray-100 transition-colors whitespace-nowrap">
-無料ダウンロード
+無料体験
 </button>
 </a>
 <button id="demo-button" class="border-2 border-white text-white px-8 py-4 !rounded-button font-semibold hover:bg-white hover:text-primary transition-colors whitespace-nowrap">
@@ -263,9 +263,9 @@ AI による音楽生成からリアルタイム演奏まで、Chord.codes の�
 ストリーミングが当たり前の時代だからこそ、生演奏というリアルな奏でをお客様に満喫していただけます。Chord.codes で新しい音楽体験を始めませんか？
 </p>
 <div class="flex flex-col sm:flex-row gap-6 justify-center items-center mb-12">
-<a href="https://readdy.ai/home/f24f56b8-6ba7-4f71-a8cb-77a197c4023d/0d2d7fdc-19d9-4d8c-b7fc-36fe3335de45" data-readdy="true">
+<a href="midi.html" data-readdy="true">
 <button class="bg-secondary text-white px-10 py-4 !rounded-button font-semibold hover:bg-opacity-90 transition-colors whitespace-nowrap text-lg">
-今すぐダウンロード
+今すぐ体験
 </button>
 </a>
 <div class="flex items-center space-x-4 text-gray-400">
@@ -328,18 +328,17 @@ AI が生成する無限の音楽をリアルタイムで演奏する革新的�
 <h3 class="font-semibold text-white mb-4">製品</h3>
 <ul class="space-y-2 text-gray-400">
 <li><a href="#" class="hover:text-white transition-colors">機能紹介</a></li>
-<li><a href="https://readdy.ai/home/f24f56b8-6ba7-4f71-a8cb-77a197c4023d/97764673-021e-44ae-b427-624fc27253e7" data-readdy="true" class="hover:text-white transition-colors">技術仕様</a></li>
+<li><a href="#" data-readdy="true" class="hover:text-white transition-colors">技術仕様</a></li>
 <li><a href="#" class="hover:text-white transition-colors">価格</a></li>
-<li><a href="#" class="hover:text-white transition-colors">FAQ</a></li>
+<li><a href="faq.php" class="hover:text-white transition-colors">FAQ</a></li>
 </ul>
 </div>
 <div>
 <h3 class="font-semibold text-white mb-4">サポート</h3>
 <ul class="space-y-2 text-gray-400">
-<li><a href="#" class="hover:text-white transition-colors">ヘルプセンター</a></li>
-<li><a href="#" class="hover:text-white transition-colors">お問い合わせ</a></li>
-<li><a href="https://readdy.ai/home/f24f56b8-6ba7-4f71-a8cb-77a197c4023d/3753fe86-2b6f-4a5a-ae99-212dab989330" data-readdy="true" class="hover:text-white transition-colors">プライバシーポリシー</a></li>
-<li><a href="https://readdy.ai/home/f24f56b8-6ba7-4f71-a8cb-77a197c4023d/afe0b60c-c4f0-4c87-9ef2-0c4c10738579" data-readdy="true" class="hover:text-white transition-colors">利用規約</a></li>
+<li><a href="support.php" class="hover:text-white transition-colors">お問い合わせ</a></li>
+<li><a href="privacy.php" data-readdy="true" class="hover:text-white transition-colors">プライバシーポリシー</a></li>
+<li><a href="terms.php" data-readdy="true" class="hover:text-white transition-colors">利用規約</a></li>
 </ul>
 </div>
 </div>
