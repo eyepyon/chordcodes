@@ -1,0 +1,888 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Web MIDI Controller</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f0f0f0;
+        }
+        
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .status {
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+            font-weight: bold;
+        }
+        
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        input[type="url"] {
+            min-width: 300px;
+        }
+        
+        .controls {
+            margin: 20px 0;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        
+        button {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 5px;
+            background: #007bff;
+            color: white;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        
+        button:hover {
+            background: #0056b3;
+        }
+        
+        button:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+        }
+        
+        input, select {
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        
+        label {
+            font-weight: bold;
+            margin-right: 8px;
+        }
+        
+        .midi-log {
+            background: #1a1a1a;
+            color: #00ff00;
+            font-family: monospace;
+            padding: 10px;
+            border-radius: 5px;
+            height: 150px;
+            overflow-y: auto;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎹 Web MIDI Controller</h1>
+        
+        <div id="status" class="status">Web MIDI APIをチェック中...</div>
+        
+        <div class="controls">
+            <button id="connectBtn">MIDI機器に接続</button>
+            <button id="testBtn" disabled>テスト音 (C4)</button>
+            <button id="playRevolutionaryBtn" disabled>🎹 革命のエチュード (1分版)</button>
+            <button id="stopBtn" disabled>⏹ 停止</button>
+        </div>
+        
+        <div class="controls">
+            <label for="midiFileInput">📁 MIDIファイル読み込み:</label>
+            <input type="file" id="midiFileInput" accept=".mid,.midi" disabled>
+            <button id="playMidiFileBtn" disabled>🎵 MIDIファイル演奏</button>
+        </div>
+        
+        <div class="controls">
+            <label for="presetMidiSelect">🎼 プリセット楽曲:</label>
+            <select id="presetMidiSelect" disabled>
+                <option value="">楽曲を選択...</option>
+                <option value="bach_invention1">バッハ インベンション第1番</option>
+                <option value="mozart_sonata">モーツァルト ソナタ K.331 第1楽章</option>
+                <option value="beethoven_moonlight">ベートーヴェン 月光ソナタ 第1楽章</option>
+                <option value="chopin_waltz">ショパン ワルツ第1番</option>
+                <option value="debussy_clair">ドビュッシー 月の光</option>
+            </select>
+            <button id="playPresetBtn" disabled>🎵 プリセット演奏</button>
+            <button id="loadUrlBtn" disabled>🌐 URL読み込み</button>
+        </div>
+        
+        <div class="controls">
+            <label for="midiUrlInput">🌐 MIDI URL:</label>
+            <input type="url" id="midiUrlInput" placeholder="https://example.com/music.mid" disabled>
+            <button id="loadFromUrlBtn" disabled>📥 URL読み込み</button>
+        </div>
+        
+        <div class="controls">
+            <label for="instrumentSelect">🎼 音色選択:</label>
+            <select id="instrumentSelect" disabled>
+                <option value="0">1. アコースティック・グランドピアノ</option>
+                <option value="1">2. ブライト・アコースティックピアノ</option>
+                <option value="2">3. エレクトリック・グランドピアノ</option>
+                <option value="3">4. ホンキートンク・ピアノ</option>
+                <option value="4">5. エレクトリックピアノ1 (ローズ)</option>
+                <option value="5">6. エレクトリックピアノ2 (コーラス)</option>
+                <option value="6">7. ハープシコード</option>
+                <option value="7">8. クラビ</option>
+                <option value="8">9. チェレスタ</option>
+                <option value="9">10. グロッケンシュピール</option>
+                <option value="10">11. ミュージックボックス</option>
+                <option value="11">12. ヴィブラフォン</option>
+                <option value="12">13. マリンバ</option>
+                <option value="13">14. シロフォン</option>
+                <option value="14">15. チューブラーベル</option>
+                <option value="15">16. ダルシマー</option>
+            </select>
+            <button id="applyToneBtn" disabled>🎹 音色適用</button>
+        </div>
+        
+        <div id="midiLog" class="midi-log">MIDI ログ...\n</div>
+    </div>
+
+    <script>
+        class SimpleMIDIController {
+            constructor() {
+                this.midiAccess = null;
+                this.outputDevice = null;
+                this.isPlaying = false;
+                this.activeNotes = new Set();
+                this.loadedMidiData = null;
+                
+                this.init();
+                this.initSong();
+                this.initPresetMidi();
+            }
+            
+            init() {
+                this.statusEl = document.getElementById('status');
+                this.connectBtn = document.getElementById('connectBtn');
+                this.testBtn = document.getElementById('testBtn');
+                this.playRevolutionaryBtn = document.getElementById('playRevolutionaryBtn');
+                this.stopBtn = document.getElementById('stopBtn');
+                this.midiFileInput = document.getElementById('midiFileInput');
+                this.playMidiFileBtn = document.getElementById('playMidiFileBtn');
+                this.presetMidiSelect = document.getElementById('presetMidiSelect');
+                this.playPresetBtn = document.getElementById('playPresetBtn');
+                this.midiUrlInput = document.getElementById('midiUrlInput');
+                this.loadFromUrlBtn = document.getElementById('loadFromUrlBtn');
+                this.instrumentSelect = document.getElementById('instrumentSelect');
+                this.applyToneBtn = document.getElementById('applyToneBtn');
+                this.midiLogEl = document.getElementById('midiLog');
+                
+                this.connectBtn.addEventListener('click', () => this.requestMIDIAccess());
+                this.testBtn.addEventListener('click', () => this.playTestNote());
+                this.playRevolutionaryBtn.addEventListener('click', () => this.playRevolutionary());
+                this.stopBtn.addEventListener('click', () => this.stopPlayback());
+                this.midiFileInput.addEventListener('change', (e) => this.handleFileSelect(e));
+                this.playMidiFileBtn.addEventListener('click', () => this.playMidiFile());
+                this.presetMidiSelect.addEventListener('change', () => this.handlePresetSelect());
+                this.playPresetBtn.addEventListener('click', () => this.playMidiFile());
+                this.loadFromUrlBtn.addEventListener('click', () => this.loadFromUrl());
+                this.instrumentSelect.addEventListener('change', () => this.changeInstrument());
+                this.applyToneBtn.addEventListener('click', () => this.changeInstrument());
+                
+                this.checkMIDISupport();
+            }
+            
+            checkMIDISupport() {
+                if (navigator.requestMIDIAccess) {
+                    this.showStatus('Web MIDI APIをサポートしています', 'success');
+                } else {
+                    this.showStatus('このブラウザはWeb MIDI APIをサポートしていません。ChromeまたはEdgeを使用してください。', 'error');
+                }
+            }
+            
+            async requestMIDIAccess() {
+                try {
+                    this.showStatus('MIDI機器にアクセス中...', 'info');
+                    this.midiAccess = await navigator.requestMIDIAccess();
+                    this.setupMIDI();
+                    this.showStatus('MIDI機器に接続しました！', 'success');
+                } catch (error) {
+                    this.showStatus(`MIDI接続エラー: ${error.message}`, 'error');
+                    this.log(`Error: ${error.message}`);
+                }
+            }
+            
+            setupMIDI() {
+                this.testBtn.disabled = false;
+                this.playRevolutionaryBtn.disabled = false;
+                this.midiFileInput.disabled = false;
+                this.presetMidiSelect.disabled = false;
+                this.midiUrlInput.disabled = false;
+                this.loadFromUrlBtn.disabled = false;
+                this.instrumentSelect.disabled = false;
+                this.applyToneBtn.disabled = false;
+                
+                // 最初の出力デバイスを自動選択
+                for (const output of this.midiAccess.outputs.values()) {
+                    this.outputDevice = output;
+                    this.log(`出力機器選択: ${output.name}`);
+                    break;
+                }
+                
+                if (!this.outputDevice) {
+                    this.log('出力可能なMIDI機器が見つかりません');
+                } else {
+                    // デフォルトでアコースティック・グランドピアノに設定
+                    this.changeInstrument();
+                }
+            }
+            
+            playTestNote() {
+                if (!this.outputDevice) {
+                    this.log('出力機器が選択されていません');
+                    return;
+                }
+                
+                const noteNumber = 60; // C4
+                const velocity = 100;
+                
+                // Note On
+                const noteOnMessage = [0x90, noteNumber, velocity];
+                this.outputDevice.send(noteOnMessage);
+                this.log(`Note On: ${noteNumber} velocity: ${velocity}`);
+                
+                // 500ms後にNote Off
+                setTimeout(() => {
+                    const noteOffMessage = [0x80, noteNumber, 0];
+                    this.outputDevice.send(noteOffMessage);
+                    this.log(`Note Off: ${noteNumber}`);
+                }, 500);
+            }
+            
+            initSong() {
+                // ショパン 革命のエチュード Op.10-12 - 完全版 (約60秒)
+                this.revolutionary = [
+                    // 第1楽章：劇的な開始
+                    { notes: [72, 36, 48], duration: 800 },
+                    { notes: [71, 35], duration: 400 },
+                    { notes: [69, 33], duration: 400 },
+                    { notes: [67, 31], duration: 600 },
+                    
+                    // 第2楽章：左手の嵐
+                    { notes: [65, 48, 60, 65], duration: 150 },
+                    { notes: [64], duration: 120 },
+                    { notes: [62], duration: 120 },
+                    { notes: [60], duration: 120 },
+                    { notes: [59], duration: 120 },
+                    { notes: [57], duration: 120 },
+                    { notes: [55], duration: 120 },
+                    { notes: [53], duration: 120 },
+                    { notes: [52], duration: 120 },
+                    { notes: [50], duration: 120 },
+                    { notes: [48], duration: 200 },
+                    
+                    // 第3楽章：右手の英雄的メロディー
+                    { notes: [77, 41, 53, 57], duration: 500 },
+                    { notes: [75], duration: 250 },
+                    { notes: [74], duration: 250 },
+                    { notes: [72, 43, 55, 60], duration: 500 },
+                    { notes: [70], duration: 250 },
+                    { notes: [69], duration: 250 },
+                    
+                    { notes: [67, 48, 60, 64], duration: 300 },
+                    { notes: [65, 53], duration: 150 },
+                    { notes: [64, 52], duration: 150 },
+                    { notes: [62, 50], duration: 150 },
+                    { notes: [60, 48], duration: 150 },
+                    { notes: [59, 47], duration: 150 },
+                    { notes: [57, 45], duration: 150 },
+                    { notes: [55, 43], duration: 150 },
+                    { notes: [53, 41], duration: 150 },
+                    
+                    // 第4楽章：技巧的展開部
+                    { notes: [84, 48, 60, 72], duration: 600 },
+                    { notes: [82, 58, 70], duration: 300 },
+                    { notes: [80, 56, 68], duration: 300 },
+                    { notes: [79, 55, 67], duration: 400 },
+                    { notes: [77, 53, 65], duration: 400 },
+                    { notes: [75, 51, 63], duration: 400 },
+                    
+                    // 第5楽章：高速パッセージ
+                    { notes: [72], duration: 100 },
+                    { notes: [74], duration: 100 },
+                    { notes: [75], duration: 100 },
+                    { notes: [77], duration: 100 },
+                    { notes: [79], duration: 100 },
+                    { notes: [80], duration: 100 },
+                    { notes: [82], duration: 100 },
+                    { notes: [84], duration: 100 },
+                    { notes: [85], duration: 100 },
+                    { notes: [87], duration: 100 },
+                    { notes: [89], duration: 200 },
+                    
+                    // 第6楽章：感情的な中間部
+                    { notes: [67, 43, 55, 67], duration: 800 },
+                    { notes: [65, 41, 53, 65], duration: 400 },
+                    { notes: [64, 40, 52, 64], duration: 400 },
+                    { notes: [62, 38, 50, 62], duration: 600 },
+                    { notes: [60, 36, 48, 60], duration: 600 },
+                    
+                    // 第7楽章：再現部
+                    { notes: [72, 36, 48], duration: 600 },
+                    { notes: [74, 38, 50], duration: 300 },
+                    { notes: [75, 39, 51], duration: 300 },
+                    { notes: [77, 41, 53], duration: 400 },
+                    { notes: [79, 43, 55], duration: 400 },
+                    
+                    // 第8楽章：嵐のような下降
+                    { notes: [89, 65], duration: 150 },
+                    { notes: [87, 63], duration: 120 },
+                    { notes: [85, 61], duration: 120 },
+                    { notes: [84, 60], duration: 120 },
+                    { notes: [82, 58], duration: 120 },
+                    { notes: [80, 56], duration: 120 },
+                    { notes: [79, 55], duration: 120 },
+                    { notes: [77, 53], duration: 120 },
+                    { notes: [75, 51], duration: 120 },
+                    { notes: [74, 50], duration: 120 },
+                    { notes: [72, 48], duration: 120 },
+                    { notes: [70, 46], duration: 120 },
+                    { notes: [69, 45], duration: 120 },
+                    { notes: [67, 43], duration: 120 },
+                    { notes: [65, 41], duration: 150 },
+                    
+                    // 第9楽章：力強い上昇
+                    { notes: [48], duration: 150 },
+                    { notes: [50], duration: 120 },
+                    { notes: [52], duration: 120 },
+                    { notes: [53], duration: 120 },
+                    { notes: [55], duration: 120 },
+                    { notes: [57], duration: 120 },
+                    { notes: [59], duration: 120 },
+                    { notes: [60], duration: 120 },
+                    { notes: [62], duration: 120 },
+                    { notes: [64], duration: 120 },
+                    { notes: [65], duration: 120 },
+                    { notes: [67], duration: 120 },
+                    { notes: [69], duration: 120 },
+                    { notes: [70], duration: 120 },
+                    { notes: [72], duration: 200 },
+                    
+                    // 第10楽章：壮大なクライマックス
+                    { notes: [84, 36, 48, 60, 72], duration: 500 },
+                    { notes: [87, 39, 51, 63, 75], duration: 400 },
+                    { notes: [89, 41, 53, 65, 77], duration: 400 },
+                    { notes: [91, 43, 55, 67, 79], duration: 600 },
+                    
+                    // 第11楽章：感動的な終結
+                    { notes: [84, 48, 60, 72], duration: 400 },
+                    { notes: [79, 43, 55, 67], duration: 300 },
+                    { notes: [84, 48, 60, 72], duration: 300 },
+                    { notes: [89, 53, 65, 77], duration: 400 },
+                    { notes: [84, 36, 48, 60, 72], duration: 1200 },
+                ];
+            }
+            
+            async playRevolutionary() {
+                if (this.isPlaying || !this.outputDevice) return;
+                
+                this.isPlaying = true;
+                this.playRevolutionaryBtn.disabled = true;
+                this.stopBtn.disabled = false;
+                this.log('🎹 革命のエチュード演奏開始');
+                
+                try {
+                    for (let i = 0; i < this.revolutionary.length && this.isPlaying; i++) {
+                        const { notes, duration } = this.revolutionary[i];
+                        
+                        if (Array.isArray(notes)) {
+                            // 和音演奏
+                            for (const note of notes) {
+                                this.playNote(note, 100);
+                            }
+                            await this.sleep(duration * 0.9);
+                            for (const note of notes) {
+                                this.stopNote(note);
+                            }
+                        } else {
+                            // 単音演奏
+                            this.playNote(notes, 100);
+                            await this.sleep(duration * 0.9);
+                            this.stopNote(notes);
+                        }
+                        
+                        if (this.isPlaying) {
+                            await this.sleep(duration * 0.1);
+                        }
+                    }
+                } catch (error) {
+                    this.log(`演奏エラー: ${error.message}`);
+                }
+                
+                this.stopPlayback();
+            }
+            
+            // プリセットMIDIデータの初期化
+            initPresetMidi() {
+                // 実際のサーバー環境では、これらのURLを適切なパスに変更してください
+                this.presetMidiUrls = {
+                    'bach_invention1': './midi/bach_invention1.mid',
+                    'mozart_sonata': './midi/mozart_sonata.mid', 
+                    'beethoven_moonlight': './midi/beethoven_moonlight.mid',
+                    'chopin_waltz': './midi/chopin_waltz.mid',
+                    'debussy_clair': './midi/debussy_clair.mid'
+                };
+            }
+            
+            // プリセット楽曲選択
+            async handlePresetSelect() {
+                const selectedValue = this.presetMidiSelect.value;
+                if (selectedValue) {
+                    this.log(`🎼 プリセット楽曲選択: ${this.presetMidiSelect.options[this.presetMidiSelect.selectedIndex].text}`);
+                    
+                    // プリセット楽曲を直接読み込み
+                    const url = this.presetMidiUrls[selectedValue];
+                    await this.loadMidiFromUrl(url);
+                    
+                    if (this.loadedMidiData) {
+                        this.playPresetBtn.disabled = false;
+                    }
+                } else {
+                    this.playPresetBtn.disabled = true;
+                }
+            }
+            
+            // URL からMIDIファイルを読み込み
+            async loadFromUrl() {
+                const url = this.midiUrlInput.value.trim();
+                if (!url) {
+                    this.log('❌ URLを入力してください');
+                    return;
+                }
+                
+                await this.loadMidiFromUrl(url);
+            }
+            
+            // プリセットまたはURLからMIDI読み込み
+            async loadMidiFromUrl(url) {
+                this.log(`🌐 MIDI読み込み中: ${url}`);
+                
+                try {
+                    // まず基本的なfetchを試行
+                    let response;
+                    
+                    try {
+                        response = await fetch(url, {
+                            method: 'GET',
+                            headers: {
+                                'Accept': 'audio/midi, application/octet-stream, */*'
+                            }
+                        });
+                    } catch (fetchError) {
+                        // CORSエラーの場合、プロキシ経由を試行
+                        this.log(`⚠️ 直接読み込み失敗、プロキシ経由を試行...`);
+                        const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`;
+                        response = await fetch(proxyUrl);
+                    }
+                    
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                    }
+                    
+                    const arrayBuffer = await response.arrayBuffer();
+                    
+                    // ArrayBufferが有効かチェック
+                    if (arrayBuffer.byteLength === 0) {
+                        throw new Error('空のファイルです');
+                    }
+                    
+                    this.log(`📊 ファイルサイズ: ${arrayBuffer.byteLength} bytes`);
+                    
+                    const midiData = this.parseMIDI(arrayBuffer);
+                    
+                    if (midiData && midiData.length > 0) {
+                        this.loadedMidiData = midiData;
+                        this.playMidiFileBtn.disabled = false;
+                        this.log(`✅ MIDI読み込み完了: ${midiData.length}個のイベント`);
+                    } else {
+                        this.log('❌ 有効なMIDIデータが見つかりません');
+                        this.log('💡 ファイルが正しいMIDI形式か確認してください');
+                    }
+                } catch (error) {
+                    this.log(`❌ MIDI読み込みエラー: ${error.message}`);
+                    
+                    // 詳細なエラー情報を提供
+                    if (error.message.includes('CORS') || error.message.includes('fetch')) {
+                        this.log('💡 解決方法:');
+                        this.log('  1. サーバーでCORSを有効化');
+                        this.log('  2. 同一ドメインにファイルを配置');
+                        this.log('  3. ローカルファイル読み込みを使用');
+                    } else if (error.message.includes('404')) {
+                        this.log('💡 ファイルが見つかりません。パスを確認してください');
+                    } else if (error.message.includes('500')) {
+                        this.log('💡 サーバーエラー。サーバー設定を確認してください');
+                    }
+                }
+            }
+            
+            playNote(note, velocity) {
+                if (!this.outputDevice || this.activeNotes.has(note)) return;
+                
+                const noteOnMessage = [0x90, note, velocity];
+                this.outputDevice.send(noteOnMessage);
+                this.activeNotes.add(note);
+            }
+            
+            stopNote(note) {
+                if (!this.outputDevice || !this.activeNotes.has(note)) return;
+                
+                const noteOffMessage = [0x80, note, 0];
+                this.outputDevice.send(noteOffMessage);
+                this.activeNotes.delete(note);
+            }
+            
+            stopPlayback() {
+                if (!this.isPlaying) return;
+                
+                this.isPlaying = false;
+                
+                // 全ての音を停止
+                for (const note of this.activeNotes) {
+                    this.stopNote(note);
+                }
+                
+                this.playRevolutionaryBtn.disabled = false;
+                this.playMidiFileBtn.disabled = this.loadedMidiData ? false : true;
+                this.playPresetBtn.disabled = this.presetMidiSelect.value ? false : true;
+                this.stopBtn.disabled = true;
+                this.log('🛑 演奏停止');
+            }
+            
+            sleep(ms) {
+                return new Promise(resolve => setTimeout(resolve, ms));
+            }
+            
+            changeInstrument() {
+                if (!this.outputDevice) return;
+                
+                const programNumber = parseInt(this.instrumentSelect.value);
+                const instrumentNames = [
+                    'アコースティック・グランドピアノ',
+                    'ブライト・アコースティックピアノ',
+                    'エレクトリック・グランドピアノ',
+                    'ホンキートンク・ピアノ',
+                    'エレクトリックピアノ1 (ローズ)',
+                    'エレクトリックピアノ2 (コーラス)',
+                    'ハープシコード',
+                    'クラビ',
+                    'チェレスタ',
+                    'グロッケンシュピール',
+                    'ミュージックボックス',
+                    'ヴィブラフォン',
+                    'マリンバ',
+                    'シロフォン',
+                    'チューブラーベル',
+                    'ダルシマー'
+                ];
+                
+                // Program Change メッセージ送信
+                this.outputDevice.send([0xC0, programNumber]);
+                
+                const instrumentName = instrumentNames[programNumber] || `楽器 ${programNumber + 1}`;
+                this.log(`🎼 音色変更: ${instrumentName}`);
+            }
+            
+            showStatus(message, type = 'info') {
+                this.statusEl.textContent = message;
+                this.statusEl.className = `status ${type}`;
+            }
+            
+            log(message) {
+                const timestamp = new Date().toLocaleTimeString();
+                this.midiLogEl.textContent += `[${timestamp}] ${message}\n`;
+                this.midiLogEl.scrollTop = this.midiLogEl.scrollHeight;
+            }
+            
+            // MIDIファイル読み込み処理
+            async handleFileSelect(event) {
+                const file = event.target.files[0];
+                if (!file) return;
+                
+                this.log(`📁 MIDIファイル読み込み中: ${file.name}`);
+                
+                try {
+                    const arrayBuffer = await file.arrayBuffer();
+                    const midiData = this.parseMIDI(arrayBuffer);
+                    
+                    if (midiData && midiData.length > 0) {
+                        this.loadedMidiData = midiData;
+                        this.playMidiFileBtn.disabled = false;
+                        this.log(`✅ MIDIファイル読み込み完了: ${midiData.length}個のイベント`);
+                    } else {
+                        this.log('❌ 有効なMIDIデータが見つかりません');
+                    }
+                } catch (error) {
+                    this.log(`❌ MIDIファイル読み込みエラー: ${error.message}`);
+                }
+            }
+            
+            // 簡易MIDIパーサー（基本的なNote OnとNote Offのみ）
+            parseMIDI(arrayBuffer) {
+                try {
+                    const view = new DataView(arrayBuffer);
+                    const events = [];
+                    let position = 0;
+                    let currentTime = 0;
+                    
+                    this.log(`📋 MIDIファイル解析開始: ${arrayBuffer.byteLength} bytes`);
+                    
+                    // ファイルの最初の16バイトを16進数で表示（デバッグ用）
+                    let hexDump = '';
+                    for (let i = 0; i < Math.min(16, arrayBuffer.byteLength); i++) {
+                        hexDump += view.getUint8(i).toString(16).padStart(2, '0').toUpperCase() + ' ';
+                    }
+                    this.log(`🔍 ファイル先頭16bytes: ${hexDump}`);
+                    
+                    // ファイルの最初の4文字をテキストとして表示
+                    let textHeader = '';
+                    for (let i = 0; i < Math.min(4, arrayBuffer.byteLength); i++) {
+                        const char = String.fromCharCode(view.getUint8(i));
+                        textHeader += char;
+                    }
+                    this.log(`📝 ヘッダー文字: "${textHeader}"`);
+                    
+                    if (arrayBuffer.byteLength < 14) {
+                        throw new Error(`ファイルが小さすぎます (${arrayBuffer.byteLength} bytes, 最低14bytes必要)`);
+                    }
+                    
+                    const headerSignature = view.getUint32(0);
+                    this.log(`🏷️ ヘッダーシグネチャ: 0x${headerSignature.toString(16).toUpperCase()}`);
+                    
+                    if (headerSignature !== 0x4D546864) { // "MThd"
+                        // よくある間違いをチェック
+                        if (textHeader === 'RIFF') {
+                            throw new Error('これはRIFFファイル（WAVなど）です。MIDIファイルではありません。');
+                        } else if (textHeader.includes('HTML') || textHeader.includes('<')) {
+                            throw new Error('これはHTMLファイルです。404エラーページの可能性があります。');
+                        } else if (arrayBuffer.byteLength < 100) {
+                            throw new Error('ファイルが小さすぎます。空のファイルかエラーページの可能性があります。');
+                        } else {
+                            throw new Error(`無効なMIDIヘッダー: "${textHeader}" (期待値: "MThd")`);
+                        }
+                    }
+                    
+                    const headerLength = view.getUint32(4);
+                    const format = view.getUint16(8);
+                    const trackCount = view.getUint16(10);
+                    const division = view.getUint16(12);
+                    
+                    this.log(`📊 MIDI情報:`);
+                    this.log(`  - ヘッダー長: ${headerLength}`);
+                    this.log(`  - フォーマット: ${format}`);
+                    this.log(`  - トラック数: ${trackCount}`);
+                    this.log(`  - 分解能: ${division}`);
+                    
+                    // フォーマットチェック
+                    if (format > 2) {
+                        throw new Error(`未対応のMIDIフォーマット: ${format} (0-2のみ対応)`);
+                    }
+                    
+                    // ヘッダー情報を読み飛ばす
+                    position = 8 + headerLength;
+                    this.log(`📍 トラックデータ開始位置: ${position}`);
+                    
+                    // トラックデータを探す
+                    let tracksProcessed = 0;
+                    while (position < arrayBuffer.byteLength - 8 && tracksProcessed < 1) { // 最初のトラックのみ
+                        if (position + 8 > arrayBuffer.byteLength) {
+                            this.log(`⚠️ ファイル末尾に到達 (位置: ${position})`);
+                            break;
+                        }
+                        
+                        const chunkType = view.getUint32(position);
+                        const chunkLength = view.getUint32(position + 4);
+                        
+                        // チャンクタイプを文字列として表示
+                        let chunkTypeStr = '';
+                        for (let i = 0; i < 4; i++) {
+                            chunkTypeStr += String.fromCharCode((chunkType >> (24 - i * 8)) & 0xFF);
+                        }
+                        this.log(`🎵 チャンク発見: "${chunkTypeStr}" (長さ: ${chunkLength})`);
+                        
+                        if (chunkType === 0x4D54726B) { // "MTrk"
+                            this.log(`✅ トラック${tracksProcessed + 1}を処理中...`);
+                            position += 8; // チャンクヘッダーをスキップ
+                            const trackEnd = Math.min(position + chunkLength, arrayBuffer.byteLength);
+                            
+                            let eventCount = 0;
+                            while (position < trackEnd - 2 && eventCount < 1000) { // 安全のため最大1000イベント
+                                try {
+                                    // デルタタイム読み取り（改良版）
+                                    let deltaTime = 0;
+                                    let byte;
+                                    let bytesRead = 0;
+                                    do {
+                                        if (position >= trackEnd) break;
+                                        byte = view.getUint8(position++);
+                                        deltaTime = (deltaTime << 7) | (byte & 0x7F);
+                                        bytesRead++;
+                                        if (bytesRead > 4) break; // 無限ループ防止
+                                    } while (byte & 0x80);
+                                    
+                                    currentTime += deltaTime;
+                                    
+                                    if (position >= trackEnd) break;
+                                    
+                                    const status = view.getUint8(position++);
+                                    eventCount++;
+                                    
+                                    // Note On (0x90-0x9F)
+                                    if ((status & 0xF0) === 0x90) {
+                                        if (position + 1 < trackEnd) {
+                                            const note = view.getUint8(position++);
+                                            const velocity = view.getUint8(position++);
+                                            
+                                            if (velocity > 0) {
+                                                events.push({
+                                                    time: Math.max(0, currentTime * 3), // タイミング調整
+                                                    type: 'noteOn',
+                                                    note: note,
+                                                    velocity: Math.min(127, velocity)
+                                                });
+                                            } else {
+                                                events.push({
+                                                    time: Math.max(0, currentTime * 3),
+                                                    type: 'noteOff',
+                                                    note: note
+                                                });
+                                            }
+                                        }
+                                    }
+                                    // Note Off (0x80-0x8F)
+                                    else if ((status & 0xF0) === 0x80) {
+                                        if (position + 1 < trackEnd) {
+                                            const note = view.getUint8(position++);
+                                            const velocity = view.getUint8(position++);
+                                            
+                                            events.push({
+                                                time: Math.max(0, currentTime * 3),
+                                                type: 'noteOff',
+                                                note: note
+                                            });
+                                        }
+                                    }
+                                    // その他のイベントをスキップ
+                                    else if (status >= 0x80) {
+                                        if (status === 0xFF) { // メタイベント
+                                            if (position < trackEnd) {
+                                                const metaType = view.getUint8(position++);
+                                                let length = 0;
+                                                let byte;
+                                                let bytesRead = 0;
+                                                do {
+                                                    if (position >= trackEnd) break;
+                                                    byte = view.getUint8(position++);
+                                                    length = (length << 7) | (byte & 0x7F);
+                                                    bytesRead++;
+                                                    if (bytesRead > 4) break;
+                                                } while (byte & 0x80);
+                                                position = Math.min(position + length, trackEnd);
+                                            }
+                                        } else if ((status & 0xF0) === 0xC0 || (status & 0xF0) === 0xD0) {
+                                            // プログラムチェンジ、チャンネルプレッシャー（1バイト）
+                                            if (position < trackEnd) position++;
+                                        } else {
+                                            // その他のチャンネルメッセージ（2バイト）
+                                            position = Math.min(position + 2, trackEnd);
+                                        }
+                                    }
+                                } catch (e) {
+                                    // エラーが発生した場合は次のバイトへ
+                                    this.log(`⚠️ 解析エラー (位置${position}): ${e.message}`);
+                                    position++;
+                                    continue;
+                                }
+                            }
+                            this.log(`📊 トラック${tracksProcessed + 1}: ${eventCount}個のイベントを処理`);
+                            tracksProcessed++;
+                        } else {
+                            this.log(`⏭️ スキップ: "${chunkTypeStr}"`);
+                            position += 8 + chunkLength;
+                        }
+                    }
+                    
+                    const sortedEvents = events.sort((a, b) => a.time - b.time);
+                    this.log(`✅ 解析完了: ${sortedEvents.length}個の音符イベント`);
+                    
+                    if (sortedEvents.length === 0) {
+                        this.log(`⚠️ 音符イベントが見つかりません`);
+                        this.log(`💡 このMIDIファイルには演奏可能な音符が含まれていない可能性があります`);
+                    }
+                    
+                    return sortedEvents;
+                } catch (error) {
+                    this.log(`❌ MIDIパース エラー: ${error.message}`);
+                    return [];
+                }
+            }
+            
+            // MIDIファイル演奏
+            async playMidiFile() {
+                if (this.isPlaying || !this.outputDevice || !this.loadedMidiData) return;
+                
+                this.isPlaying = true;
+                this.playMidiFileBtn.disabled = true;
+                this.playRevolutionaryBtn.disabled = true;
+                this.stopBtn.disabled = false;
+                this.log('🎵 MIDIファイル演奏開始');
+                
+                try {
+                    let lastTime = 0;
+                    
+                    for (const event of this.loadedMidiData) {
+                        if (!this.isPlaying) break;
+                        
+                        // 待機時間
+                        const waitTime = event.time - lastTime;
+                        if (waitTime > 0) {
+                            await this.sleep(waitTime);
+                        }
+                        
+                        if (!this.isPlaying) break;
+                        
+                        // MIDIイベント実行
+                        if (event.type === 'noteOn') {
+                            this.playNote(event.note, event.velocity || 100);
+                        } else if (event.type === 'noteOff') {
+                            this.stopNote(event.note);
+                        }
+                        
+                        lastTime = event.time;
+                    }
+                } catch (error) {
+                    this.log(`MIDIファイル演奏エラー: ${error.message}`);
+                }
+                
+                this.stopPlayback();
+            }
+        }
+        
+        // アプリケーション開始
+        document.addEventListener('DOMContentLoaded', () => {
+            new SimpleMIDIController();
+        });
+    </script>
+</body>
+</html>

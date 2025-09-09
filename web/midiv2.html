@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Web MIDI Controller - Revolutionary Etude</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f0f0f0;
+        }
+        
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .status {
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+            font-weight: bold;
+        }
+        
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .controls {
+            margin: 20px 0;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        
+        button {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 5px;
+            background: #007bff;
+            color: white;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        
+        button:hover {
+            background: #0056b3;
+        }
+        
+        button:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+        }
+        
+        input, select {
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        
+        label {
+            font-weight: bold;
+            margin-right: 8px;
+        }
+        
+        .midi-log {
+            background: #1a1a1a;
+            color: #00ff00;
+            font-family: monospace;
+            padding: 10px;
+            border-radius: 5px;
+            height: 150px;
+            overflow-y: auto;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎹 Web MIDI Controller - Revolutionary Etude</h1>
+        
+        <div id="status" class="status">Web MIDI APIをチェック中...</div>
+        
+        <div class="controls">
+            <button id="connectBtn">MIDI機器に接続</button>
+            <button id="testBtn" disabled>テスト音 (C4)</button>
+            <button id="playRevolutionaryBtn" disabled>🎹 革命のエチュード (1分版)</button>
+            <button id="stopBtn" disabled>⏹ 停止</button>
+        </div>
+        
+        <div class="controls">
+            <label for="instrumentSelect">🎼 音色選択:</label>
+            <select id="instrumentSelect" disabled>
+                <option value="0">1. アコースティック・グランドピアノ</option>
+                <option value="1">2. ブライト・アコースティックピアノ</option>
+                <option value="2">3. エレクトリック・グランドピアノ</option>
+                <option value="3">4. ホンキートンク・ピアノ</option>
+                <option value="4">5. エレクトリックピアノ1 (ローズ)</option>
+                <option value="5">6. エレクトリックピアノ2 (コーラス)</option>
+                <option value="6">7. ハープシコード</option>
+                <option value="7">8. クラビ</option>
+                <option value="8">9. チェレスタ</option>
+                <option value="9">10. グロッケンシュピール</option>
+                <option value="10">11. ミュージックボックス</option>
+                <option value="11">12. ヴィブラフォン</option>
+                <option value="12">13. マリンバ</option>
+                <option value="13">14. シロフォン</option>
+                <option value="14">15. チューブラーベル</option>
+                <option value="15">16. ダルシマー</option>
+            </select>
+            <button id="applyToneBtn" disabled>🎹 音色適用</button>
+        </div>
+        
+        <div id="midiLog" class="midi-log">MIDI ログ...\n</div>
+    </div>
+
+    <script>
+        class SimpleMIDIController {
+            constructor() {
+                this.midiAccess = null;
+                this.outputDevice = null;
+                this.isPlaying = false;
+                this.activeNotes = new Set();
+                
+                this.init();
+                this.initSong();
+            }
+            
+            init() {
+                this.statusEl = document.getElementById('status');
+                this.connectBtn = document.getElementById('connectBtn');
+                this.testBtn = document.getElementById('testBtn');
+                this.playRevolutionaryBtn = document.getElementById('playRevolutionaryBtn');
+                this.stopBtn = document.getElementById('stopBtn');
+                this.instrumentSelect = document.getElementById('instrumentSelect');
+                this.applyToneBtn = document.getElementById('applyToneBtn');
+                this.midiLogEl = document.getElementById('midiLog');
+                
+                this.connectBtn.addEventListener('click', () => this.requestMIDIAccess());
+                this.testBtn.addEventListener('click', () => this.playTestNote());
+                this.playRevolutionaryBtn.addEventListener('click', () => this.playRevolutionary());
+                this.stopBtn.addEventListener('click', () => this.stopPlayback());
+                this.instrumentSelect.addEventListener('change', () => this.changeInstrument());
+                this.applyToneBtn.addEventListener('click', () => this.changeInstrument());
+                
+                this.checkMIDISupport();
+            }
+            
+            checkMIDISupport() {
+                if (navigator.requestMIDIAccess) {
+                    this.showStatus('Web MIDI APIをサポートしています', 'success');
+                } else {
+                    this.showStatus('このブラウザはWeb MIDI APIをサポートしていません。ChromeまたはEdgeを使用してください。', 'error');
+                }
+            }
+            
+            async requestMIDIAccess() {
+                try {
+                    this.showStatus('MIDI機器にアクセス中...', 'info');
+                    this.midiAccess = await navigator.requestMIDIAccess();
+                    this.setupMIDI();
+                    this.showStatus('MIDI機器に接続しました！', 'success');
+                } catch (error) {
+                    this.showStatus(`MIDI接続エラー: ${error.message}`, 'error');
+                    this.log(`Error: ${error.message}`);
+                }
+            }
+            
+            setupMIDI() {
+                this.testBtn.disabled = false;
+                this.playRevolutionaryBtn.disabled = false;
+                this.instrumentSelect.disabled = false;
+                this.applyToneBtn.disabled = false;
+                
+                // 最初の出力デバイスを自動選択
+                for (const output of this.midiAccess.outputs.values()) {
+                    this.outputDevice = output;
+                    this.log(`出力機器選択: ${output.name}`);
+                    break;
+                }
+                
+                if (!this.outputDevice) {
+                    this.log('出力可能なMIDI機器が見つかりません');
+                } else {
+                    // デフォルトでアコースティック・グランドピアノに設定
+                    this.changeInstrument();
+                }
+            }
+            
+            playTestNote() {
+                if (!this.outputDevice) {
+                    this.log('出力機器が選択されていません');
+                    return;
+                }
+                
+                const noteNumber = 60; // C4
+                const velocity = 100;
+                
+                // Note On
+                const noteOnMessage = [0x90, noteNumber, velocity];
+                this.outputDevice.send(noteOnMessage);
+                this.log(`Note On: ${noteNumber} velocity: ${velocity}`);
+                
+                // 500ms後にNote Off
+                setTimeout(() => {
+                    const noteOffMessage = [0x80, noteNumber, 0];
+                    this.outputDevice.send(noteOffMessage);
+                    this.log(`Note Off: ${noteNumber}`);
+                }, 500);
+            }
+            
+            initSong() {
+                // ショパン 革命のエチュード Op.10-12 - 完全版 (約60秒)
+                this.revolutionary = [
+                    // 第1楽章：劇的な開始
+                    { notes: [72, 36, 48], duration: 800 },
+                    { notes: [71, 35], duration: 400 },
+                    { notes: [69, 33], duration: 400 },
+                    { notes: [67, 31], duration: 600 },
+                    
+                    // 第2楽章：左手の嵐
+                    { notes: [65, 48, 60, 65], duration: 150 },
+                    { notes: [64], duration: 120 },
+                    { notes: [62], duration: 120 },
+                    { notes: [60], duration: 120 },
+                    { notes: [59], duration: 120 },
+                    { notes: [57], duration: 120 },
+                    { notes: [55], duration: 120 },
+                    { notes: [53], duration: 120 },
+                    { notes: [52], duration: 120 },
+                    { notes: [50], duration: 120 },
+                    { notes: [48], duration: 200 },
+                    
+                    // 第3楽章：右手の英雄的メロディー
+                    { notes: [77, 41, 53, 57], duration: 500 },
+                    { notes: [75], duration: 250 },
+                    { notes: [74], duration: 250 },
+                    { notes: [72, 43, 55, 60], duration: 500 },
+                    { notes: [70], duration: 250 },
+                    { notes: [69], duration: 250 },
+                    
+                    { notes: [67, 48, 60, 64], duration: 300 },
+                    { notes: [65, 53], duration: 150 },
+                    { notes: [64, 52], duration: 150 },
+                    { notes: [62, 50], duration: 150 },
+                    { notes: [60, 48], duration: 150 },
+                    { notes: [59, 47], duration: 150 },
+                    { notes: [57, 45], duration: 150 },
+                    { notes: [55, 43], duration: 150 },
+                    { notes: [53, 41], duration: 150 },
+                    
+                    // 第4楽章：技巧的展開部
+                    { notes: [84, 48, 60, 72], duration: 600 },
+                    { notes: [82, 58, 70], duration: 300 },
+                    { notes: [80, 56, 68], duration: 300 },
+                    { notes: [79, 55, 67], duration: 400 },
+                    { notes: [77, 53, 65], duration: 400 },
+                    { notes: [75, 51, 63], duration: 400 },
+                    
+                    // 第5楽章：高速パッセージ
+                    { notes: [72], duration: 100 },
+                    { notes: [74], duration: 100 },
+                    { notes: [75], duration: 100 },
+                    { notes: [77], duration: 100 },
+                    { notes: [79], duration: 100 },
+                    { notes: [80], duration: 100 },
+                    { notes: [82], duration: 100 },
+                    { notes: [84], duration: 100 },
+                    { notes: [85], duration: 100 },
+                    { notes: [87], duration: 100 },
+                    { notes: [89], duration: 200 },
+                    
+                    // 第6楽章：感情的な中間部
+                    { notes: [67, 43, 55, 67], duration: 800 },
+                    { notes: [65, 41, 53, 65], duration: 400 },
+                    { notes: [64, 40, 52, 64], duration: 400 },
+                    { notes: [62, 38, 50, 62], duration: 600 },
+                    { notes: [60, 36, 48, 60], duration: 600 },
+                    
+                    // 第7楽章：再現部
+                    { notes: [72, 36, 48], duration: 600 },
+                    { notes: [74, 38, 50], duration: 300 },
+                    { notes: [75, 39, 51], duration: 300 },
+                    { notes: [77, 41, 53], duration: 400 },
+                    { notes: [79, 43, 55], duration: 400 },
+                    
+                    // 第8楽章：嵐のような下降
+                    { notes: [89, 65], duration: 150 },
+                    { notes: [87, 63], duration: 120 },
+                    { notes: [85, 61], duration: 120 },
+                    { notes: [84, 60], duration: 120 },
+                    { notes: [82, 58], duration: 120 },
+                    { notes: [80, 56], duration: 120 },
+                    { notes: [79, 55], duration: 120 },
+                    { notes: [77, 53], duration: 120 },
+                    { notes: [75, 51], duration: 120 },
+                    { notes: [74, 50], duration: 120 },
+                    { notes: [72, 48], duration: 120 },
+                    { notes: [70, 46], duration: 120 },
+                    { notes: [69, 45], duration: 120 },
+                    { notes: [67, 43], duration: 120 },
+                    { notes: [65, 41], duration: 150 },
+                    
+                    // 第9楽章：力強い上昇
+                    { notes: [48], duration: 150 },
+                    { notes: [50], duration: 120 },
+                    { notes: [52], duration: 120 },
+                    { notes: [53], duration: 120 },
+                    { notes: [55], duration: 120 },
+                    { notes: [57], duration: 120 },
+                    { notes: [59], duration: 120 },
+                    { notes: [60], duration: 120 },
+                    { notes: [62], duration: 120 },
+                    { notes: [64], duration: 120 },
+                    { notes: [65], duration: 120 },
+                    { notes: [67], duration: 120 },
+                    { notes: [69], duration: 120 },
+                    { notes: [70], duration: 120 },
+                    { notes: [72], duration: 200 },
+                    
+                    // 第10楽章：壮大なクライマックス
+                    { notes: [84, 36, 48, 60, 72], duration: 500 },
+                    { notes: [87, 39, 51, 63, 75], duration: 400 },
+                    { notes: [89, 41, 53, 65, 77], duration: 400 },
+                    { notes: [91, 43, 55, 67, 79], duration: 600 },
+                    
+                    // 第11楽章：感動的な終結
+                    { notes: [84, 48, 60, 72], duration: 400 },
+                    { notes: [79, 43, 55, 67], duration: 300 },
+                    { notes: [84, 48, 60, 72], duration: 300 },
+                    { notes: [89, 53, 65, 77], duration: 400 },
+                    { notes: [84, 36, 48, 60, 72], duration: 1200 },
+                ];
+            }
+            
+            async playRevolutionary() {
+                if (this.isPlaying || !this.outputDevice) return;
+                
+                this.isPlaying = true;
+                this.playRevolutionaryBtn.disabled = true;
+                this.stopBtn.disabled = false;
+                this.log('🎹 革命のエチュード演奏開始');
+                
+                try {
+                    for (let i = 0; i < this.revolutionary.length && this.isPlaying; i++) {
+                        const { notes, duration } = this.revolutionary[i];
+                        
+                        if (Array.isArray(notes)) {
+                            // 和音演奏
+                            for (const note of notes) {
+                                this.playNote(note, 100);
+                            }
+                            await this.sleep(duration * 0.9);
+                            for (const note of notes) {
+                                this.stopNote(note);
+                            }
+                        } else {
+                            // 単音演奏
+                            this.playNote(notes, 100);
+                            await this.sleep(duration * 0.9);
+                            this.stopNote(notes);
+                        }
+                        
+                        if (this.isPlaying) {
+                            await this.sleep(duration * 0.1);
+                        }
+                    }
+                } catch (error) {
+                    this.log(`演奏エラー: ${error.message}`);
+                }
+                
+                this.stopPlayback();
+            }
+            
+            playNote(note, velocity) {
+                if (!this.outputDevice || this.activeNotes.has(note)) return;
+                
+                const noteOnMessage = [0x90, note, velocity];
+                this.outputDevice.send(noteOnMessage);
+                this.activeNotes.add(note);
+            }
+            
+            stopNote(note) {
+                if (!this.outputDevice || !this.activeNotes.has(note)) return;
+                
+                const noteOffMessage = [0x80, note, 0];
+                this.outputDevice.send(noteOffMessage);
+                this.activeNotes.delete(note);
+            }
+            
+            stopPlayback() {
+                if (!this.isPlaying) return;
+                
+                this.isPlaying = false;
+                
+                // 全ての音を停止
+                for (const note of this.activeNotes) {
+                    this.stopNote(note);
+                }
+                
+                this.playRevolutionaryBtn.disabled = false;
+                this.stopBtn.disabled = true;
+                this.log('🛑 演奏停止');
+            }
+            
+            sleep(ms) {
+                return new Promise(resolve => setTimeout(resolve, ms));
+            }
+            
+            changeInstrument() {
+                if (!this.outputDevice) return;
+                
+                const programNumber = parseInt(this.instrumentSelect.value);
+                const instrumentNames = [
+                    'アコースティック・グランドピアノ',
+                    'ブライト・アコースティックピアノ',
+                    'エレクトリック・グランドピアノ',
+                    'ホンキートンク・ピアノ',
+                    'エレクトリックピアノ1 (ローズ)',
+                    'エレクトリックピアノ2 (コーラス)',
+                    'ハープシコード',
+                    'クラビ',
+                    'チェレスタ',
+                    'グロッケンシュピール',
+                    'ミュージックボックス',
+                    'ヴィブラフォン',
+                    'マリンバ',
+                    'シロフォン',
+                    'チューブラーベル',
+                    'ダルシマー'
+                ];
+                
+                // Program Change メッセージ送信
+                this.outputDevice.send([0xC0, programNumber]);
+                
+                const instrumentName = instrumentNames[programNumber] || `楽器 ${programNumber + 1}`;
+                this.log(`🎼 音色変更: ${instrumentName}`);
+            }
+            
+            showStatus(message, type = 'info') {
+                this.statusEl.textContent = message;
+                this.statusEl.className = `status ${type}`;
+            }
+            
+            log(message) {
+                const timestamp = new Date().toLocaleTimeString();
+                this.midiLogEl.textContent += `[${timestamp}] ${message}\n`;
+                this.midiLogEl.scrollTop = this.midiLogEl.scrollHeight;
+            }
+        }
+        
+        // アプリケーション開始
+        document.addEventListener('DOMContentLoaded', () => {
+            new SimpleMIDIController();
+        });
+    </script>
+</body>
+</html>
