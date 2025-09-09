@@ -360,9 +360,9 @@ scroll-margin-top: 2rem;
 本規約に関するご質問やお問い合わせは、以下までご連絡ください：
 </p>
 <ul class="space-y-1 text-gray-700">
-<li><strong>メール：</strong>legal@chord.codes</li>
-<li><strong>電話：</strong>03-6804-5678（平日 10:00-18:00）</li>
-<li><strong>お問い合わせフォーム：</strong>https://chord.codes/contact</li>
+<li><strong>メール：</strong>support@chord.codes</li>
+<li><strong>電話：</strong>050-3196-9600（平日 10:00-18:00）</li>
+<li><strong>お問い合わせフォーム：</strong>https://chord.codes/support.php</li>
 </ul>
 </div>
 </div>

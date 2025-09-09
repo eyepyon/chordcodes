@@ -71,7 +71,7 @@ background-clip: text;
 <a href="#features" class="text-white hover:text-secondary transition-colors">機能</a>
 <a href="#technology" class="text-white hover:text-secondary transition-colors">技術</a>
 <a href="#use-cases" class="text-white hover:text-secondary transition-colors">活用例</a>
-<a href="#download" class="text-white hover:text-secondary transition-colors">ダウンロード</a>
+<a href="#download" class="text-white hover:text-secondary transition-colors">体験する</a>
 </div>
 <button class="md:hidden w-8 h-8 flex items-center justify-center text-white">
 <i class="ri-menu-line text-xl"></i>

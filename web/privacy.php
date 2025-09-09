@@ -477,10 +477,10 @@ Chord.codes では、お客様の個人情報の保護を最重要課題とし�
 会社情報
 </h3>
 <div class="space-y-2 text-sm">
-<p><strong>会社名：</strong>株式会社 Chord.codes</p>
-<p><strong>代表者：</strong>代表取締役 田中 雅人</p>
-<p><strong>所在地：</strong>〒150-0001<br>東京都渋谷区神宮前 6-23-4 桑野ビル 2F</p>
-<p><strong>設立：</strong>2023 年 4 月</p>
+<p><strong>会社名：</strong>フロッグカンパニー株式会社</p>
+<p><strong>代表者：</strong>代表取締役 會田昌史</p>
+<p><strong>所在地：</strong>〒106-0044<br>東京都港区東麻布1丁目5-2ザイマックス東麻布ビル8F</p>
+<p><strong>設立：</strong>2017 年 10 月</p>
 </div>
 </div>
 <div class="bg-gray-800 rounded-lg p-6">
@@ -493,7 +493,7 @@ Chord.codes では、お客様の個人情報の保護を最重要課題とし�
 <div class="space-y-2 text-sm">
 <p><strong>個人情報保護責任者：</strong>プライバシーオフィサー</p>
 <p><strong>メール：</strong>privacy@chord.codes</p>
-<p><strong>電話：</strong>03-6804-2891</p>
+<p><strong>電話：</strong>050-3196-9600</p>
 <p><strong>受付時間：</strong>平日 10:00-18:00<br>（土日祝日、年末年始を除く）</p>
 </div>
 </div>
