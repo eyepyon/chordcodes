@@ -152,7 +152,7 @@ max-height: 300px;
 <p class="text-gray-600 mb-4 leading-relaxed">緊急の問題や複雑な技術的サポートが必要な場合にご利用ください。</p>
 <div class="text-sm text-gray-500 space-y-1">
 <p><strong>対応時間:</strong> 平日 10:00-17:00</p>
-<p><strong>電話番号:</strong> 0120-123-456</p>
+<p><strong>電話番号:</strong> 050-3196-9600</p>
 </div>
 </div>
 </div>
@@ -249,7 +249,7 @@ max-height: 300px;
 <div class="w-5 h-5 flex items-center justify-center">
 <i class="ri-phone-fill"></i>
 </div>
-<span>0120-123-456</span>
+<span>050-3196-9600</span>
 </div>
 </div>
 </div>
