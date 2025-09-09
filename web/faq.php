@@ -514,7 +514,7 @@ AI が生成する無限の音楽をリアルタイムで演奏する革新的�
 <li><a href="#" class="hover:text-white transition-colors">機能紹介</a></li>
 <li><a href="#" class="hover:text-white transition-colors">技術仕様</a></li>
 <li><a href="#" class="hover:text-white transition-colors">価格</a></li>
-<li><a href="#" class="hover:text-white transition-colors">ダウンロード</a></li>
+<li><a href="faq.php" class="hover:text-white transition-colors">FAQ</a></li>
 </ul>
 </div>
 <div>

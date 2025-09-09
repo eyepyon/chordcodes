@@ -554,6 +554,7 @@ AI が生成する無限の音楽をリアルタイムで演奏する革新的�
 <h3 class="font-semibold text-white mb-4">サポート</h3>
 <ul class="space-y-2 text-gray-400">
 <li><a href="support.php" class="hover:text-white transition-colors">お問い合わせ</a></li>
+<li><a href="privacy.php" class="hover:text-white transition-colors">プライバシーポリシー</a></li>
 <li><a href="terms.php" class="hover:text-white transition-colors">利用規約</a></li>
 </ul>
 </div>

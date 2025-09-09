@@ -389,7 +389,7 @@ demoButton.addEventListener('click', () => {
 demoModal.classList.remove('hidden');
 document.body.style.overflow = 'hidden';
 const iframe = demoModal.querySelector('iframe');
-iframe.src = 'https://www.youtube.com/embed/dQw4w9WgXcQ';
+iframe.src = 'https://www.youtube.com/embed/bGt3qPZX-gk';
 });
 closeModal.addEventListener('click', () => {
 demoModal.classList.add('hidden');

@@ -93,7 +93,7 @@ scroll-margin-top: 2rem;
 <div class="p-8 border-b border-gray-200">
 <div class="flex justify-between items-center">
 <h2 class="text-2xl font-bold text-gray-900">利用規約</h2>
-<div class="text-sm text-gray-500">最終更新日：2025年1月15日</div>
+<div class="text-sm text-gray-500">最終更新日：2025年9月9日</div>
 </div>
 </div>
 
@@ -128,7 +128,7 @@ scroll-margin-top: 2rem;
 </div>
 <div class="prose prose-gray max-w-none">
 <p class="text-gray-700 leading-relaxed mb-4">
-本利用規約（以下「本規約」といいます）は、株式会社 Chord Technologies（以下「当社」といいます）が提供する音楽生成・演奏アプリケーション「Chord.codes」（以下「本サービス」といいます）の利用条件を定めるものです。
+本利用規約（以下「本規約」といいます）は、フロッグカンパニー株式会社（以下「当社」といいます）が提供する音楽生成・演奏アプリケーション「Chord.codes」（以下「本サービス」といいます）の利用条件を定めるものです。
 </p>
 <p class="text-gray-700 leading-relaxed mb-4">
 ユーザーの皆様（以下「ユーザー」といいます）には、本サービスをご利用いただく前に、本規約の内容をご確認いただき、これに同意いただく必要があります。
@@ -151,17 +151,15 @@ scroll-margin-top: 2rem;
 <div>
 <h4 class="font-semibold text-gray-900 mb-3">会社概要</h4>
 <ul class="space-y-2 text-gray-700">
-<li><strong>会社名：</strong>株式会社 Chord Technologies</li>
-<li><strong>代表者：</strong>代表取締役 田中 健一</li>
-<li><strong>設立：</strong>2023年4月1日</li>
-<li><strong>資本金：</strong>5,000万円</li>
+<li><strong>会社名：</strong>フロッグカンパニー株式会社</li>
+<li><strong>代表者：</strong>代表取締役CTO 會田 昌史</li>
 </ul>
 </div>
 <div>
 <h4 class="font-semibold text-gray-900 mb-3">連絡先</h4>
 <ul class="space-y-2 text-gray-700">
-<li><strong>所在地：</strong>〒150-0001<br>東京都渋谷区神宮前6-19-20<br>第15荒井ビル4階</li>
-<li><strong>電話：</strong>03-6804-5678</li>
+<li><strong>所在地：</strong>〒106-0044<br>東京都港区東麻布1丁目5-2<br>ザイマックス東麻布ビル8F</li>
+<li><strong>電話：</strong>050-3196-9600</li>
 <li><strong>メール：</strong>support@chord.codes</li>
 </ul>
 </div>
